@@ -33,7 +33,22 @@ class Polygon(Body):
     @property
     def vertices(self):
         return [vertex.rotate(self.angle).add(self.pos) for vertex in self._vertices]
-    
+
+    @property
+    def aabb(self):
+        min_x = float('inf')
+        max_x = float('-inf')
+        min_y = float('inf')
+        max_y = float('-inf')
+
+        for v in self.vertices:
+            if v.x < min_x: min_x = v.x
+            if v.x > max_x: max_x = v.x
+            if v.y < min_y: min_y = v.y
+            if v.y > max_y: max_y = v.y
+            
+        return (min_x, min_y, max_x, max_y)
+
     def calculate_inertia(self):
         area = 0
         center = Vector2D(0, 0)
@@ -88,6 +103,21 @@ class Rectangle(Body):
     def vertices(self):
         return [vertex.rotate(self.angle).add(self.pos) for vertex in self._vertices]
 
+    @property
+    def aabb(self):
+        min_x = float('inf')
+        max_x = float('-inf')
+        min_y = float('inf')
+        max_y = float('-inf')
+
+        for v in self.vertices:
+            if v.x < min_x: min_x = v.x
+            if v.x > max_x: max_x = v.x
+            if v.y < min_y: min_y = v.y
+            if v.y > max_y: max_y = v.y
+            
+        return (min_x, min_y, max_x, max_y)
+
     def rotate(self, angle, in_radians=True):
         if not in_radians:
             angle = math.radians(angle)
@@ -99,6 +129,15 @@ class Circle(Body):
         self.radius = radius
         self.shape_type = "Circle"
         self.inertia = (1 / 2) * mass * radius * radius if not is_static else float("inf")
+
+    @property
+    def aabb(self):
+        return (
+            self.pos.x - self.radius,
+            self.pos.y - self.radius,
+            self.pos.x + self.radius,
+            self.pos.y + self.radius
+        )
 
     def rotate(self, angle, in_radians=True):
         if not in_radians:
