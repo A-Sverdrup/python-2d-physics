@@ -274,27 +274,33 @@ def polygons_collision(polygon_1: Polygon, polygon_2: Polygon):
 
 
 def separate_bodies(body_1: Body, body_2: Body, normal, penetration_depth):
-    separation_vector = normal * penetration_depth
+    # Method 1
+    # separation_vector = normal * penetration_depth
 
-    # Another Solution
-    # percent = 0.2; slope = 0.01
-    #separation_vector = max(penetration_depth - slope, 0) / (1 / body_1.mass + 1 / body_2.mass) * percent * normal
+    # if body_1.is_static:
+    #     body_2.pos += separation_vector
+    # elif body_2.is_static:
+    #     body_1.pos -= separation_vector
+    # else:
+    #     body_1.pos -= separation_vector / 2
+    #     body_2.pos += separation_vector / 2
 
-    if body_1.is_static:
-        body_2.pos += separation_vector
-    elif body_2.is_static:
-        body_1.pos -= separation_vector
-    else:
-        body_1.pos -= separation_vector / 2
-        body_2.pos += separation_vector / 2
+    # Method 2
+    percent = 0.8
+    slope = 0.01
 
-    # Another Solution
-    # if body_1.is_static == False:
-    #     body_1.pos -= separation_vector * 1 / body_1.mass
-    # if body_2.is_static == False:
-    #     body_2.pos += separation_vector * 1 / body_2.mass
+    inv_mass1 = 1 / body_1.mass
+    inv_mass2 = 1 / body_2.mass
+    inv_mass_sum = inv_mass1 + inv_mass2
 
+    if inv_mass_sum == 0: return
 
+    separation_vector = max(penetration_depth - slope, 0) / inv_mass_sum * percent * normal
+
+    if not body_1.is_static:
+        body_1.pos -= separation_vector * inv_mass1
+    if not body_2.is_static:
+        body_2.pos += separation_vector * inv_mass2
 
 
 def resolution(body_1: Body, body_2: Body, normal_vector: Vector2D, penetration_depth: float):

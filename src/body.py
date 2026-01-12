@@ -17,6 +17,11 @@ class Body():
         self.angular_velocity = 0
         self.inertia = None
 
+    def rotate(self, angle, in_radians=True):
+        if not in_radians:
+            angle = math.radians(angle)
+        self.angle += angle
+
 class Polygon(Body):
     def __init__(self, x, y, vertices: list[Vector2D, list, tuple], mass=1, static_friction=0.5, dynamic_friction=0.5, bounce=0.5, name=None, is_static=False):
         super().__init__(x, y, mass, static_friction, dynamic_friction, bounce, name, is_static)
@@ -33,7 +38,22 @@ class Polygon(Body):
     @property
     def vertices(self):
         return [vertex.rotate(self.angle).add(self.pos) for vertex in self._vertices]
-    
+
+    @property
+    def aabb(self):
+        min_x = float('inf')
+        max_x = float('-inf')
+        min_y = float('inf')
+        max_y = float('-inf')
+
+        for v in self.vertices:
+            if v.x < min_x: min_x = v.x
+            if v.x > max_x: max_x = v.x
+            if v.y < min_y: min_y = v.y
+            if v.y > max_y: max_y = v.y
+            
+        return (min_x, min_y, max_x, max_y)
+
     def calculate_inertia(self):
         area = 0
         center = Vector2D(0, 0)
@@ -60,15 +80,10 @@ class Polygon(Body):
 
         return mmoi
 
-    def rotate(self, angle, in_radians=True):
-        if not in_radians:
-            angle = math.radians(angle)
-        self.angle += angle
 
-
-class Rectangle(Body):
+class Rectangle(Polygon):
     def __init__(self, x, y, width, height, mass = 1, static_friction = 0.5, dynamic_friction = 0.5, bounce = 0.5, name = None, is_static = False):
-        super().__init__(x, y, mass, static_friction, dynamic_friction, bounce, name, is_static)
+        Body.__init__(self, x, y, mass, static_friction, dynamic_friction, bounce, name, is_static)
         self.width = width
         self.height = height
         self.shape_type = "Polygon"
@@ -84,14 +99,6 @@ class Rectangle(Body):
 
         self.inertia = (1 / 12) * mass * (width * width + height * height) if not is_static else float("inf")
 
-    @property
-    def vertices(self):
-        return [vertex.rotate(self.angle).add(self.pos) for vertex in self._vertices]
-
-    def rotate(self, angle, in_radians=True):
-        if not in_radians:
-            angle = math.radians(angle)
-        self.angle += angle
 
 class Circle(Body):
     def __init__(self, x, y, radius, mass = 1, static_friction = 0.5, dynamic_friction = 0.5, bounce = 0.5, name = None, is_static = False):
@@ -100,7 +107,11 @@ class Circle(Body):
         self.shape_type = "Circle"
         self.inertia = (1 / 2) * mass * radius * radius if not is_static else float("inf")
 
-    def rotate(self, angle, in_radians=True):
-        if not in_radians:
-            angle = math.radians(angle)
-        self.angle += angle
+    @property
+    def aabb(self):
+        return (
+            self.pos.x - self.radius,
+            self.pos.y - self.radius,
+            self.pos.x + self.radius,
+            self.pos.y + self.radius
+        )

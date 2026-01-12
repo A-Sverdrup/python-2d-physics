@@ -36,7 +36,7 @@ from space import Space
 WIDTH, HEIGHT = 800, 600
 PLAYER_SPEED_X = PLAYER_SPEED_Y = 10
 FPS = 360
-GRAVITY = 9.8
+GRAVITY = 1000
 COLORS = {
     "white": (255, 255, 255),
     "red": (255, 0, 0),

@@ -2,6 +2,18 @@ from body import Body
 from collision import collide
 
 
+def intersect_aabb(body_a, body_b):
+    a_min_x, a_min_y, a_max_x, a_max_y = body_a.aabb
+    b_min_x, b_min_y, b_max_x, b_max_y = body_b.aabb
+
+    return (
+        a_min_x <= b_max_x and
+        a_max_x >= b_min_x and
+        a_min_y <= b_max_y and
+        a_max_y >= b_min_y
+    )
+
+
 class Space:
     def __init__(self, bodies: list[Body], gravity = 9.8):
         self.bodies: list[Body] = bodies
@@ -15,7 +27,7 @@ class Space:
     def simulate_gravity(self, dt):
         for body in self.bodies:
             if body.is_static == False:
-                body.velocity[1] -= self.gravity * body.mass * dt
+                body.velocity[1] -= self.gravity * dt
 
     def update_position(self, dt):
         for body in self.bodies:
@@ -28,6 +40,9 @@ class Space:
         for i in range(len(self.bodies) - 1):
             for j in range(i + 1, len(self.bodies)):
                 if self.bodies[i] == self.bodies[j]:
+                    continue
+
+                if not intersect_aabb(self.bodies[i], self.bodies[j]):
                     continue
 
                 contact_points = collide(self.bodies[i], self.bodies[j])
